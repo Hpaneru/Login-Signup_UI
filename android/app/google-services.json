@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "970518816466",
+    "firebase_url": "https://loginsignup-4f0fa.firebaseio.com",
+    "project_id": "loginsignup-4f0fa",
+    "storage_bucket": "loginsignup-4f0fa.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:970518816466:android:2af1a9078b8cf78645af0b",
+        "android_client_info": {
+          "package_name": "com.example.loginui"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "970518816466-l6sqd2ft5jk8n9mlhnk5185jmbeq05ib.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNQUHekaQEflr3Of3hR_Fni7Pu7rac63M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "970518816466-l6sqd2ft5jk8n9mlhnk5185jmbeq05ib.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,21 +1,19 @@
-import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-//import 'package:loginui/homepage.dart';
+import 'package:loginui/Signup.dart';
+import 'package:loginui/googlesignin.dart';
+import 'package:loginui/homepage.dart';
+import 'package:loginui/phoneverification.dart';
 import 'package:mdi/mdi.dart';
 
-import 'login.dart';
-import 'services/usermanagement.dart';
-
-class Signup extends StatefulWidget {
+class LoginPage extends StatefulWidget {
   @override
-  _SignupState createState() => _SignupState();
+  _LoginPageState createState() => _LoginPageState();
 }
 
-class _SignupState extends State<Signup> {
-  User userInfo = User();
-  String password;
+class _LoginPageState extends State<LoginPage> {
+  String email, password;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,13 +24,13 @@ class _SignupState extends State<Signup> {
             child: Center(
               child: Column(
                 children: <Widget>[
-                  SizedBox(height: 115.0),
+                  SizedBox(height: 150.0),
                   Text(
-                    'Sign Up',
+                    'Login',
                     style:
                         TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 110.0),
+                  SizedBox(height: 50.0),
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.grey[300],
@@ -48,7 +46,7 @@ class _SignupState extends State<Signup> {
                       ),
                       onChanged: (value) {
                         setState(() {
-                          userInfo.email = value;
+                          email = value;
                         });
                       },
                     ),
@@ -75,13 +73,21 @@ class _SignupState extends State<Signup> {
                       },
                     ),
                   ),
-                  SizedBox(height: 30),
+                  SizedBox(height: 10.0),
+                  Row(
+                    children: <Widget>[
+                      FlatButton(
+                        child: Text('Forgot Password ??'),
+                        onPressed: () {},
+                      ),
+                    ],
+                  ),
                   SizedBox(
                     height: 50.0,
                     width: double.infinity,
                     child: RaisedButton(
                       child: Text(
-                        'SIGN UP',
+                        'LOGIN',
                         style: TextStyle(color: Colors.white),
                       ),
                       color: Color(0xff272a39),
@@ -90,15 +96,15 @@ class _SignupState extends State<Signup> {
                       ),
                       onPressed: () {
                         FirebaseAuth.instance
-                            .createUserWithEmailAndPassword(
-                                email: userInfo.email, password: password)
-                            .then((signedInUser) {
-                          userInfo.id = signedInUser.user.uid;
-                          UserManagement().storeNewUser(userInfo, context);
-                          //  Navigator.pushReplacement(context,
-                          //   MaterialPageRoute(builder: (context) => Homepage()));
+                            .signInWithEmailAndPassword(
+                                email: email, password: password)
+                            .then((AuthResult user) {
+                          Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => Homepage()));
                         }).catchError((e) {
-                          print(e);
+                          print(e.message);
                         });
                       },
                     ),
@@ -113,27 +119,42 @@ class _SignupState extends State<Signup> {
                       children: <Widget>[
                         IconButton(
                           icon: Icon(Mdi.phone),
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => PhoneAuthScreen()));
+                          },
                           color: Colors.blue,
                           iconSize: 40.0,
                         ),
                         IconButton(
-                          icon: Icon(Mdi.twitter),
-                          onPressed: () {},
+                          icon: Icon(Mdi.google),
+                          onPressed: () {
+                            signInWithGoogle().whenComplete(() {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return Homepage();
+                                  },
+                                ),
+                              );
+                            });
+                          },
                           color: Colors.blue,
                           iconSize: 40.0,
                         )
                       ],
                     ),
                   ),
-                  SizedBox(height: 50.0),
+                  SizedBox(height: 35),
                   RichText(
                     text: TextSpan(
-                        text: 'already account?',
+                        text: 'don\'t have a account?',
                         style: TextStyle(color: Colors.black),
                         children: <TextSpan>[
                           TextSpan(
-                            text: ' LOGIN',
+                            text: ' SIGN UP',
                             style: TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold),
@@ -142,7 +163,7 @@ class _SignupState extends State<Signup> {
                                 Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => LoginPage()));
+                                        builder: (context) => Signup()));
                               },
                           ),
                         ]),
@@ -155,11 +176,4 @@ class _SignupState extends State<Signup> {
       ),
     );
   }
-}
-
-class User {
-  String id;
-  String email;
-
-  User({this.id, this.email});
 }
