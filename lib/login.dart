@@ -5,14 +5,24 @@ import 'package:loginui/Signup.dart';
 import 'package:loginui/googlesignin.dart';
 import 'package:loginui/homepage.dart';
 import 'package:loginui/phoneverification.dart';
+import 'package:loginui/resetpassword.dart';
 import 'package:mdi/mdi.dart';
+
+import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 
 class LoginPage extends StatefulWidget {
   @override
   _LoginPageState createState() => _LoginPageState();
 }
 
+final FirebaseAuth auth = FirebaseAuth.instance;
+final FacebookLogin fbLogin = new FacebookLogin();
+
 class _LoginPageState extends State<LoginPage> {
+  bool isFacebookLoginIn = false;
+  String errorMessage = '';
+  String successMessage = '';
+
   String email, password;
   @override
   Widget build(BuildContext context) {
@@ -24,7 +34,7 @@ class _LoginPageState extends State<LoginPage> {
             child: Center(
               child: Column(
                 children: <Widget>[
-                  SizedBox(height: 150.0),
+                  SizedBox(height: 140.0),
                   Text(
                     'Login',
                     style:
@@ -78,7 +88,18 @@ class _LoginPageState extends State<LoginPage> {
                     children: <Widget>[
                       FlatButton(
                         child: Text('Forgot Password ??'),
-                        onPressed: () {},
+                        onPressed: () async {
+                          await showDialog(
+                              barrierDismissible: false,
+                              context: context,
+                              builder: (BuildContext context) {
+                                return Dialog(
+                                    child: ResetPassword(),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(12))));
+                              });
+                        },
                       ),
                     ],
                   ),
@@ -114,7 +135,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   Text('or'),
                   Padding(
-                    padding: EdgeInsets.only(left: 115.0),
+                    padding: EdgeInsets.only(left: 85.0),
                     child: Row(
                       children: <Widget>[
                         IconButton(
@@ -131,19 +152,29 @@ class _LoginPageState extends State<LoginPage> {
                         IconButton(
                           icon: Icon(Mdi.google),
                           onPressed: () {
-                            signInWithGoogle().whenComplete(() {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return Homepage();
-                                  },
-                                ),
-                              );
+                            signInWithGoogle().then((a) {
+                              Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => Homepage()));
                             });
                           },
                           color: Colors.blue,
                           iconSize: 40.0,
-                        )
+                        ),
+                        IconButton(
+                          icon: Icon(Mdi.facebook),
+                          onPressed: () {
+                            facebookLogin(context).then((a) {
+                              Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => Homepage()));
+                            });
+                          },
+                          color: Colors.blue,
+                          iconSize: 40.0,
+                        ),
                       ],
                     ),
                   ),
@@ -176,4 +207,35 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
+}
+
+Future<FirebaseUser> facebookLogin(BuildContext context) async {
+  FirebaseUser currentUser;
+  try {
+    final FacebookLoginResult facebookLoginResult =
+        await fbLogin.logIn(['email']);
+    if (facebookLoginResult.status == FacebookLoginStatus.loggedIn) {
+      FacebookAccessToken facebookAccessToken = facebookLoginResult.accessToken;
+      final AuthCredential credential = FacebookAuthProvider.getCredential(
+          accessToken: facebookAccessToken.token);
+      final FirebaseUser user =
+          (await auth.signInWithCredential(credential)).user;
+      assert(user.email != null);
+      assert(user.displayName != null);
+      assert(!user.isAnonymous);
+      assert(await user.getIdToken() != null);
+      currentUser = await auth.currentUser();
+      assert(user.uid == currentUser.uid);
+      return currentUser;
+    }
+  } catch (e) {
+    print(e);
+  }
+  return currentUser;
+}
+
+Future<bool> facebookLoginout() async {
+  await auth.signOut();
+  await fbLogin.logOut();
+  return true;
 }

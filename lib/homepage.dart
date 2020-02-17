@@ -18,14 +18,15 @@ class _HomepageState extends State<Homepage> {
         floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.add),
           onPressed: () {
-            
             FirebaseAuth.instance.signOut().then((value) {
-              Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (context) => LoginPage()));
+              Navigator.pushReplacement(context,
+                  MaterialPageRoute(builder: (context) => LoginPage()));
             }).catchError((e) {
               print(e);
             });
-           signOutGoogle();
+            signOutGoogle();
+
+            facebookLoginout();
           },
         ));
   }

@@ -106,8 +106,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
         verificationId: verificationId,
         smsCode: smsOTP,
       );
-      final FirebaseUser user =
-          (await _auth.signInWithCredential(credential)).user;
+      final FirebaseUser user =(await _auth.signInWithCredential(credential)).user;
       final FirebaseUser currentUser = await _auth.currentUser();
       assert(user.uid == currentUser.uid);
       Navigator.of(context).pop();
@@ -158,8 +157,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                   borderRadius: BorderRadius.all(Radius.circular(32)),
                 ),
                 child: TextField(
-                  //keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
+                    decoration: InputDecoration(
                     hintStyle: TextStyle(fontSize: 17),
                     hintText: 'Ph.No. Eg. +910000000000',
                     prefixIcon: Icon(Icons.phone),
