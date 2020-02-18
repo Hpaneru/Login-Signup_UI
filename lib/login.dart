@@ -14,14 +14,15 @@ class LoginPage extends StatefulWidget {
   @override
   _LoginPageState createState() => _LoginPageState();
 }
-
-final FirebaseAuth auth = FirebaseAuth.instance;
-final FacebookLogin fbLogin = new FacebookLogin();
+  final FacebookLogin fbLogin = FacebookLogin();
+  final FirebaseAuth auth = FirebaseAuth.instance;
 
 class _LoginPageState extends State<LoginPage> {
-  bool isFacebookLoginIn = false;
-  String errorMessage = '';
-  String successMessage = '';
+  // bool isFacebookLoginIn = false;
+  // String errorMessage = '';
+  // String successMessage = '';
+  //FirebaseUser fbUser;
+    FirebaseUser currentUser;
 
   String email, password;
   @override
@@ -220,10 +221,6 @@ Future<FirebaseUser> facebookLogin(BuildContext context) async {
           accessToken: facebookAccessToken.token);
       final FirebaseUser user =
           (await auth.signInWithCredential(credential)).user;
-      assert(user.email != null);
-      assert(user.displayName != null);
-      assert(!user.isAnonymous);
-      assert(await user.getIdToken() != null);
       currentUser = await auth.currentUser();
       assert(user.uid == currentUser.uid);
       return currentUser;
