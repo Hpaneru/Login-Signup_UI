@@ -8,12 +8,17 @@ class PhoneAuthScreen extends StatefulWidget {
   _PhoneAuthScreenState createState() => _PhoneAuthScreenState();
 }
 
+String dropdownValue = '+977';
+
 class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
+  List<String> _locations = ['+977', '+91', '+11'];
+
   String phoneNo;
   String smsOTP;
   String verificationId;
   String errorMessage = '';
   FirebaseAuth _auth = FirebaseAuth.instance;
+  bool loading = false;
 
   Future<void> verifyPhone() async {
     final PhoneCodeSent smsOTPSent = (String verId, [int forceCodeResend]) {
@@ -24,14 +29,11 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
     };
     try {
       await _auth.verifyPhoneNumber(
-          phoneNumber: this.phoneNo, // PHONE NUMBER TO SEND OTP
+          phoneNumber: dropdownValue + this.phoneNo,
           codeAutoRetrievalTimeout: (String verId) {
-            //Starts the phone number verification process for the given phone number.
-            //Either sends an SMS with a 6 digit code to the phone number specified, or sign's the user in and [verificationCompleted] is called.
             this.verificationId = verId;
           },
-          codeSent:
-              smsOTPSent, // WHEN CODE SENT THEN WE OPEN DIALOG TO ENTER OTP.
+          codeSent: smsOTPSent,
           timeout: const Duration(seconds: 20),
           verificationCompleted: (AuthCredential phoneAuthCredential) {
             print(phoneAuthCredential);
@@ -41,6 +43,9 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
           });
     } catch (e) {
       handleError(e);
+      setState(() {
+        loading = false;
+      });
     }
   }
 
@@ -55,22 +60,22 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
               height: 85,
               child: Column(children: [
                 Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.all(Radius.circular(32)),
-                    ),
-                    child: TextField(
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        hintStyle: TextStyle(fontSize: 17),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.all(20),
-                      ),
-                      onChanged: (value) {
-                       this.smsOTP = value;
-                      },
-                    ),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.all(Radius.circular(32)),
                   ),
+                  child: TextField(
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      hintStyle: TextStyle(fontSize: 17),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.all(20),
+                    ),
+                    onChanged: (value) {
+                      this.smsOTP = value;
+                    },
+                  ),
+                ),
                 (errorMessage != ''
                     ? Text(
                         errorMessage,
@@ -106,9 +111,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
         verificationId: verificationId,
         smsCode: smsOTP,
       );
-      final FirebaseUser user =(await _auth.signInWithCredential(credential)).user;
-      final FirebaseUser currentUser = await _auth.currentUser();
-      assert(user.uid == currentUser.uid);
+      await _auth.signInWithCredential(credential);
       Navigator.of(context).pop();
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => Homepage()));
@@ -121,7 +124,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
     print(error);
     switch (error.code) {
       case 'ERROR_INVALID_VERIFICATION_CODE':
-        FocusScope.of(context).requestFocus(new FocusNode());
+        FocusScope.of(context).requestFocus(FocusNode());
         setState(() {
           errorMessage = 'Invalid Code';
         });
@@ -151,53 +154,69 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.all(10.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.all(Radius.circular(32)),
-                ),
-                child: TextField(
-                    decoration: InputDecoration(
-                    hintStyle: TextStyle(fontSize: 17),
-                    hintText: 'Ph.No. Eg. +910000000000',
-                    prefixIcon: Icon(Icons.phone),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.all(20),
-                  ),
-                  onChanged: (value) {
-                    this.phoneNo = value;
-                  },
-                ),
-              ),
+              child: _buildPhonefield(),
             ),
-            (errorMessage != ''
-                ? Text(
-                    errorMessage,
-                    style: TextStyle(color: Colors.red),
-                  )
-                : Container()),
-            SizedBox(
-              height: 10,
-            ),
-            SizedBox(
-              height: 50.0,
-              child: RaisedButton(
-                child: Text(
-                  'VERIFY',
-                  style: TextStyle(color: Colors.white),
-                ),
-                color: Color(0xff272a39),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30.0),
-                ),
-                onPressed: () {
-                  verifyPhone();
-                },
-              ),
+            SizedBox(height: 20),
+            FlatButton(
+              child: loading == true
+                  ? CircularProgressIndicator()
+                  : Text(
+                      'VERIFY',
+                    ),
+              onPressed: () {
+                setState(() {
+                  loading = true;
+                });
+                verifyPhone();
+              },
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPhonefield() {
+    return Row(
+      children: <Widget>[
+        code(),
+        SizedBox(
+          width: 1.0,
+        ),
+        Expanded(
+          child: TextField(
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              filled: false,
+              hintText: "Mobile number",
+              prefixIcon: Icon(Icons.phone),
+            ),
+            onChanged: (value) {
+              this.phoneNo = value;
+            },
+          ),
+          flex: 5,
+        ),
+      ],
+    );
+  }
+
+  Widget code() {
+    return DropdownButton<String>(
+      value: dropdownValue ?? "",
+      icon: Icon(Icons.arrow_drop_down),
+      iconSize: 24,
+      onChanged: (String newValue) {
+        setState(() {
+          dropdownValue = newValue;
+        });
+      },
+      items: _locations.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
     );
   }
 }

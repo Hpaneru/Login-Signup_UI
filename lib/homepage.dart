@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'googlesignin.dart';
+import 'helpers/google_signin.dart';
+import 'helpers/facebook_login.dart';
 import 'login.dart';
 
 class Homepage extends StatefulWidget {

@@ -2,9 +2,8 @@ import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-//import 'package:loginui/homepage.dart';
 import 'package:mdi/mdi.dart';
-
+import 'homepage.dart';
 import 'login.dart';
 import 'services/usermanagement.dart';
 
@@ -14,11 +13,23 @@ class Signup extends StatefulWidget {
 }
 
 class _SignupState extends State<Signup> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   User userInfo = User();
   String password;
+  bool loading = false;
+
+  void showSnackBar(String value) {
+    _scaffoldKey.currentState.showSnackBar(SnackBar(
+      content: Text(value),
+    ));
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(10.0),
@@ -80,25 +91,36 @@ class _SignupState extends State<Signup> {
                     height: 50.0,
                     width: double.infinity,
                     child: RaisedButton(
-                      child: Text(
-                        'SIGN UP',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      color: Color(0xff272a39),
+                      child: loading == true
+                          ? CircularProgressIndicator(
+                              backgroundColor: Theme.of(context).primaryColor,
+                            )
+                          : Text(
+                              'SIGN UP',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                      color: Theme.of(context).accentColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30.0),
                       ),
                       onPressed: () {
+                        setState(() {
+                          loading = true;
+                        });
                         FirebaseAuth.instance
                             .createUserWithEmailAndPassword(
                                 email: userInfo.email, password: password)
                             .then((signedInUser) {
                           userInfo.id = signedInUser.user.uid;
                           UserManagement().storeNewUser(userInfo, context);
-                          //  Navigator.pushReplacement(context,
-                          //   MaterialPageRoute(builder: (context) => Homepage()));
+                           Navigator.pushReplacement(context,
+                            MaterialPageRoute(builder: (context) => Homepage()));
                         }).catchError((e) {
-                          print(e);
+                          print(e.message);
+                          showSnackBar(e.message);
+                          setState(() {
+                            loading = false;
+                          });
                         });
                       },
                     ),
